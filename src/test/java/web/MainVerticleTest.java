@@ -7,6 +7,8 @@ import io.vertx.ext.unit.TestContext;
 
 import org.junit.Test;
 
+import backend.Message;
+
 public class MainVerticleTest extends AbstractIntegrationTest {
 
 	public void getAndVerifyBody(String requestURI, Handler<Buffer> bodyVerifier) {

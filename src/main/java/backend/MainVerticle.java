@@ -1,4 +1,4 @@
-package web;
+package backend;
 
 import java.net.URI;
 import java.net.URISyntaxException;

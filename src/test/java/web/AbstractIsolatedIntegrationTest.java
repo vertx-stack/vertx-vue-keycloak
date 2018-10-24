@@ -8,6 +8,8 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.runner.RunWith;
 
+import backend.MainVerticle;
+
 @RunWith(VertxUnitRunner.class)
 public class AbstractIsolatedIntegrationTest {
 

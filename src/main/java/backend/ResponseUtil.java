@@ -1,4 +1,4 @@
-package web;
+package backend;
 
 import io.vertx.core.Handler;
 import io.vertx.core.http.HttpServerRequest;

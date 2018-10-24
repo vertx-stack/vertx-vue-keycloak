@@ -8,6 +8,8 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.runner.RunWith;
 
+import backend.MainVerticle;
+
 @RunWith(VertxUnitRunner.class)
 public class AbstractIntegrationTest {
 

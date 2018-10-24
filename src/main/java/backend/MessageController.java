@@ -1,8 +1,9 @@
-package web;
+package backend;
 
-import static web.ResponseUtil.respondWithCreated;
-import static web.ResponseUtil.respondWithDeleted;
-import static web.ResponseUtil.respondWithJson;
+import static backend.ResponseUtil.respondWithCreated;
+import static backend.ResponseUtil.respondWithDeleted;
+import static backend.ResponseUtil.respondWithJson;
+
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.ext.web.Router;

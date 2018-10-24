@@ -1,4 +1,4 @@
-package web;
+package backend;
 
 import io.vertx.core.Vertx;
 import io.vertx.core.json.Json;
