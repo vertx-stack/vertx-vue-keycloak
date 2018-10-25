@@ -8,6 +8,7 @@ import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Future;
 import io.vertx.core.eventbus.Message;
 import io.vertx.core.http.HttpServerOptions;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.net.JksOptions;
 import io.vertx.ext.auth.User;
@@ -16,6 +17,7 @@ import io.vertx.ext.auth.oauth2.OAuth2FlowType;
 import io.vertx.ext.auth.oauth2.providers.KeycloakAuth;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.handler.BodyHandler;
+import io.vertx.ext.web.handler.CorsHandler;
 import io.vertx.ext.web.handler.StaticHandler;
 import io.vertx.ext.web.handler.sockjs.BridgeOptions;
 import io.vertx.ext.web.handler.sockjs.PermittedOptions;
@@ -28,13 +30,15 @@ public class MainVerticle extends AbstractVerticle {
 	private JsonObject httpServer = new JsonObject()
 			.put("hostname", "0.0.0.0")
 			.put("port", 8080);
-	
+
 	// configuration for HTTPS server
 	private JsonObject httpsServer = new JsonObject()
 			.put("hostname", "0.0.0.0")
 			.put("port", 4443)
 			.put("keyStore", "test.jks")
 			.put("enforceRedirect", false);
+
+	private JsonArray messages = new JsonArray().add("message1").add("message2");
 	
 	@Override
 	public void start(Future<Void> startFuture) {
@@ -57,7 +61,7 @@ public class MainVerticle extends AbstractVerticle {
 		httpOptions.setHost(httpServer.getString("hostname"));
 		httpOptions.setPort(httpServer.getInteger("port"));
 		httpOptions.setSsl(false);
-		
+
 		vertx.createHttpServer(httpOptions).requestHandler(router::accept).listen();
 		System.out.println("created HTTP server at " + httpServer.getString("hostname") + ":" + httpServer.getInteger("port"));
 
@@ -67,16 +71,29 @@ public class MainVerticle extends AbstractVerticle {
 		httpsOptions.setPort(httpsServer.getInteger("port"));
 		httpsOptions.setSsl(true);
 		httpsOptions.setKeyStoreOptions(new JksOptions().setPath( httpsServer.getString("keyStore") ).setPassword("testpassword"));
-	
+
 		vertx.createHttpServer(httpsOptions).requestHandler(router::accept).listen();
 		System.out.println("created HTTPS server at " + httpsServer.getString("hostname") + ":" + httpsServer.getInteger("port") + " (keyFile: " + httpsServer.getString("keyStore") + ")");
 
 		boolean enforceSslRedirect = httpsServer.getBoolean("enforceRedirect");
-		
+
 		final BodyHandler bodyHandler = BodyHandler.create();
 		router.route("/app/*").handler(bodyHandler);
 		router.route("/login").handler(bodyHandler);
 
+		// enable CORS
+		router.route().handler(CorsHandler.create("http://localhost:8081")
+				.allowedMethod(io.vertx.core.http.HttpMethod.GET)
+				.allowedMethod(io.vertx.core.http.HttpMethod.POST)
+				.allowedMethod(io.vertx.core.http.HttpMethod.OPTIONS)
+				.allowCredentials(true)
+				.allowedHeader("Access-Control-Allow-Headers")
+				.allowedHeader("Authorization")
+				.allowedHeader("Access-Control-Allow-Method")
+				.allowedHeader("Access-Control-Allow-Origin")
+				.allowedHeader("Access-Control-Allow-Credentials")
+				.allowedHeader("Content-Type"));
+		
 		// HTTP to HTTPS redirect
 		router.route().handler( context -> {
 			boolean sslUsed = context.request().isSSL();
@@ -84,7 +101,7 @@ public class MainVerticle extends AbstractVerticle {
 			if(!sslUsed && enforceSslRedirect) {
 				try {
 					int httpsPort = httpsServer.getInteger("port");
-					
+
 					URI myHttpUri = new URI( context.request().absoluteURI() );
 					URI myHttpsUri = new URI("https", 
 							myHttpUri.getUserInfo(), 
@@ -101,31 +118,31 @@ public class MainVerticle extends AbstractVerticle {
 			}
 			else context.next();
 		});
-		
+
 		JsonObject keycloakJson = new JsonObject()
-			    .put("realm", "master") // (1)
-			    .put("realm-public-key", "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAqZeGGDeEHmmUN4/UXh2gQD0yZEZirprsrdYK7GfcE1+QF9yfYfBrIv5cQUssFQKISVpbbLcoqYolsxcOvDyVFSQedHRsumOzqNZK38RHkidPMPrSNof5C3iMIHuXOCv/6exnLZvVoeYmkq42davYEz1tpSWzkZnlUMbRZFs1CfzLMM2rsAJWsO1/5zbDm0JhFl7EFUsTki72ihac1Q5zUUSFyf1jKUEkL7rrkYINjgAaQKktE8pnubc3Y44F5llY4YyU9/bqUWqMYDx868oiDcnoBpGGd4QrUMlbULZZLRqqUKK6iG1kHxDCJQ9gaCiJoELyAqXjnnO28OODQhxMHQIDAQAB") // (2)
-			    .put("auth-server-url", "http://127.0.0.1:38080/auth")
-			    .put("ssl-required", "external")
-			    .put("resource", "vertx-account") // (3)
-			    .put("credentials", new JsonObject().put("secret", "0c22e587-2ccb-4dd3-b017-5ff6a903891b")); // (4)
-			 
-			OAuth2Auth oauth2 = KeycloakAuth.create(vertx, OAuth2FlowType.PASSWORD, keycloakJson);
-		
-			
+				.put("realm", "master") // (1)
+				.put("realm-public-key", "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAqZeGGDeEHmmUN4/UXh2gQD0yZEZirprsrdYK7GfcE1+QF9yfYfBrIv5cQUssFQKISVpbbLcoqYolsxcOvDyVFSQedHRsumOzqNZK38RHkidPMPrSNof5C3iMIHuXOCv/6exnLZvVoeYmkq42davYEz1tpSWzkZnlUMbRZFs1CfzLMM2rsAJWsO1/5zbDm0JhFl7EFUsTki72ihac1Q5zUUSFyf1jKUEkL7rrkYINjgAaQKktE8pnubc3Y44F5llY4YyU9/bqUWqMYDx868oiDcnoBpGGd4QrUMlbULZZLRqqUKK6iG1kHxDCJQ9gaCiJoELyAqXjnnO28OODQhxMHQIDAQAB") // (2)
+				.put("auth-server-url", "http://127.0.0.1:38080/auth")
+				.put("ssl-required", "external")
+				.put("resource", "vertx-account") // (3)
+				.put("credentials", new JsonObject().put("secret", "0c22e587-2ccb-4dd3-b017-5ff6a903891b")); // (4)
+
+		OAuth2Auth oauth2 = KeycloakAuth.create(vertx, OAuth2FlowType.PASSWORD, keycloakJson);
+
+
 
 		// We need a user session handler too to make sure the user is stored in the session between requests
-//		router.route().handler(UserSessionHandler.create(authProvider));
+		//		router.route().handler(UserSessionHandler.create(authProvider));
 
-//		router.route("/").handler(context -> {
-//			context.response().putHeader("location", "/app").setStatusCode(302).end();
-//		});
+		//		router.route("/").handler(context -> {
+		//			context.response().putHeader("location", "/app").setStatusCode(302).end();
+		//		});
 
 
-//		router.route("/app*").handler(RedirectAuthHandler.create(authProvider, "/login.html"));
-//		router.route("/app*").failureHandler(context -> {
-//			context.failure().printStackTrace();
-//		});
+		//		router.route("/app*").handler(RedirectAuthHandler.create(authProvider, "/login.html"));
+		//		router.route("/app*").failureHandler(context -> {
+		//			context.failure().printStackTrace();
+		//		});
 
 		// handler to deliver the user info object
 		router.route("/app/userinfo").handler(context -> {
@@ -147,50 +164,46 @@ public class MainVerticle extends AbstractVerticle {
 
 		router.post("/login").produces("application/json").handler(rc -> {
 			System.err.println("received body ::: '"+rc.getBodyAsString()+"'");
-			
 			JsonObject userJson = rc.getBodyAsJson();
 			System.err.println("User ::: "+userJson.encode());
-			
 
-		    //User u = Json.decodeValue(rc.getBodyAsString(), User.class);
-		    oauth2.authenticate(userJson, res -> {
-		        if (res.failed()) {
-		            System.err.println("Access token error: {} " + res.cause().getMessage());
-		            rc.response().setStatusCode(HttpResponseStatus.INTERNAL_SERVER_ERROR.code()).end();
-		        } else {
-		            User user = res.result();
-		            System.out.println("Success: we have found user: "+user.principal());
-//		            System.err.println("Access Token: {} " + KeycloakHelper.rawAccessToken(token.principal()));
-//		            User user = Json.decodeValue(KeycloakHelper.rawAccessToken(token.principal()), User.class);
-		            rc.response().end(user.toString());
-		        }
-		    });
+			oauth2.authenticate(userJson, res -> {
+				if (res.failed()) {
+					System.err.println("Access token error: {} " + res.cause().getMessage());
+					rc.response().setStatusCode(HttpResponseStatus.UNAUTHORIZED.code()).end();
+				} else {
+					User user = res.result();
+					System.out.println("Success: we have found user: "+user.principal().encodePrettily());
+					rc.response().end(user.principal().encodePrettily());
+				}
+			});
 		});
 
-//		// Handles the actual login
-//		router.post("/login").handler(FormLoginHandler.create(authProvider).setDirectLoggedInOKURL("/app/"));
-//
-//		// Implement logout
-//		router.route("/logout").handler(context -> {
-//			context.clearUser();
-//			context.setUser(null);
-//			context.session().destroy();
-//			context.setSession(null);
-//			System.out.println("session destroyed, should log out now");
-////			context.reroute("/");
-//		});
+		//		// Handles the actual login
+		//		router.post("/login").handler(FormLoginHandler.create(authProvider).setDirectLoggedInOKURL("/app/"));
+		//
+		//		// Implement logout
+		//		router.route("/logout").handler(context -> {
+		//			context.clearUser();
+		//			context.setUser(null);
+		//			context.session().destroy();
+		//			context.setSession(null);
+		//			System.out.println("session destroyed, should log out now");
+		////			context.reroute("/");
+		//		});
 
 		// make sure the user is properly authenticated when using the eventbus, if not reject with 403
 		// TEMPORARILY DISABLED : test with c3.munich
-		router.route("/eventbus/*").handler(ctx -> {
-			// we need to be logged in
-			if (ctx.user() == null) {
-				ctx.fail(403);
-			} else {
-				ctx.next();
-			}
-		});
+//		router.route("/eventbus/*").handler(ctx -> {
+//			// we need to be logged in
+//			if (ctx.user() == null) {
+//				ctx.fail(403);
+//			} else {
+//				ctx.next();
+//			}
+//		});
 
+		
 		BridgeOptions options = new BridgeOptions();
 		options.addInboundPermitted(new PermittedOptions());
 		options.addOutboundPermitted(new PermittedOptions());
@@ -205,27 +218,29 @@ public class MainVerticle extends AbstractVerticle {
 		 * we will add a reference to the user ibmserial for anything that comes in or goes out
 		 */
 		router.route("/eventbus/*").handler(SockJSHandler.create(vertx, sockjsOptions).bridge(options, event -> {
-			if (event.getRawMessage() != null) {
-				JsonObject raw = event.getRawMessage();
-				raw.put("headers", new JsonObject().put("serial", event.socket().webUser().principal().getInteger("serial")));
-			}
+//			if (event.getRawMessage() != null) {
+//				JsonObject raw = event.getRawMessage();
+//				raw.put("headers", new JsonObject().put("serial", event.socket().webUser().principal().getInteger("serial")));
+//			}
 			event.complete(true);
 		}));
 
 
 		router.route().handler(StaticHandler.create().setCachingEnabled(true));
 	}
-	
-	
+
+
 	private void createApiEndpoints() {
-		
+
 		vertx.eventBus().consumer("/api/messages", this::apiMessages);
 	}
 
-	
+
 	private void apiMessages(Message<JsonObject> msg) {
+		System.err.println("apiMessages called");
 		JsonObject inputObject = msg.body();
-		msg.reply(new JsonObject());
+		System.out.println(inputObject.encode());
+		msg.reply(messages);
 	}
 }
 

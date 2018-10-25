@@ -29,8 +29,8 @@
 
 <script type="text/babel">
 import axios from 'axios'
-import eventbus from './../eventbus'
-import { remove } from './../util'
+import eventbus from '../utils/eventbus'
+import { remove } from '../utils/remove'
 let self
 export default {
   data () {
@@ -42,28 +42,40 @@ export default {
     }
   },
   methods: {
-    getAll: () => axios.get('api/messages').then(res => self.messages = res.data),
+    // getAll: () => axios.get('api/messages').then(res => self.messages = res.data),
+    getAll () {
+      console.log('getAll called')
+      // send a message
+      // eventbus.send('/api/messages', {name: 'tim', age: 587})
+    },
     post: () => {
       if (self.content !== '') {
         axios.post('api/messages', self.content)
         self.content = ''
       }
     },
-    remove: id => axios.delete('api/messages/' + id)
+    remove: id => axios.delete('api/messages/' + id),
+    created () {
+      this.getAll()
+    }
   },
-  ready() {
+  created() {
+    self.getAll()
+  },
+  ready () {
+    console.log('::: Home vue ready')
     // when the component is loaded 1. the current state is fetched from the server
     // 2. push create and delete handlers are registered
     self.getAll()
     eventbus.handle('messages/created', message => self.messages.push(message))
     eventbus.handle('messages/deleted', message => remove(self.messages, storedMessage => message.id === storedMessage.id))
-    eventbus.handle('connections', connections => self.connectionCount = connections.count)
+    // eventbus.handle('connections', connections => self.connectionCount = connections.count)
   }
 }
 </script>
 
 <style lang="scss" scoped>
-@import "../bootstrap/_theme.scss";
+
 h1 {
   text-align: center;
   margin-top: 20px;
@@ -97,4 +109,3 @@ h1 {
   color: #aaa;
 }
 </style>
-
