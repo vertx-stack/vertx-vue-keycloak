@@ -4,7 +4,6 @@ const API_URL = process.env.API_URL + '/eventbus' || 'http://localhost:8080/even
 const eventbus = new EventBus(API_URL)
 
 export default {
-
   callApi (api, inputObject) {
     return new Promise((resolve, reject) => {
       console.log('calling vertx API ', api)
