@@ -1,15 +1,15 @@
-# bookstore-frontend
+# vertx-vue-keycloak frontend
 
-> Frontend for https://github.com/paweljw/bookstore-backend app, built for a series of articles [on my blog](https://paweljw.github.io/tags/#vue-frontend-series-list).
+> Frontend for https://github.com/vertx-stack/vertx-vue-keycloak app, built for the medium article ...
 
 ## Build Setup
 
 ``` bash
 # install dependencies
-npm install
+npm install, or yarn
 
 # serve with hot reload at localhost:8080
-npm run dev
+npm run dev, or yarn dev
 
 # build for production with minification
 npm run build

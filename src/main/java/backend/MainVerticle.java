@@ -195,17 +195,25 @@ public class MainVerticle extends AbstractVerticle {
 	 * creates Vertx EventBus based API endpoints (for query and mutation)
 	 */
 	private void createApiEndpoints() {
-
 		vertx.eventBus().consumer("/api/messages", this::apiMessages);
 		vertx.eventBus().consumer("/api/messages/delete", this::apiMessagesDelete);
 		vertx.eventBus().consumer("/api/messages/add", this::apiMessagesAdd);
 	}
 
+	/**
+	 * get messages API handler, this simply returns our as-is messages array
+	 * @param msg
+	 */
 	private void apiMessages(Message<JsonObject> msg) {
 		System.err.println("apiMessages called");
 		msg.reply(messages);
 	}
 
+	/**
+	 * delete message API handler, this deletes a given message from our messages array and 
+	 * publishes the entire message array to all potential subscribers
+	 * @param msg
+	 */
 	private void apiMessagesDelete(Message<JsonObject> msg) {
 		JsonObject inputObject = msg.body();
 		System.err.println("apiMessagesDelete called : "+inputObject.encode());
@@ -217,16 +225,22 @@ public class MainVerticle extends AbstractVerticle {
 				break;
 			}
 		}
-
+		// publish all known messages to any subscriber
 		this.vertx.eventBus().publish(":pubsub/messages", messages);
 		msg.reply(new JsonObject());
 	}
 
+	/**
+	 * add message API handler, this adds a new message into our messages array and 
+	 * publishes the entire message array to all potential subscribers
+	 * @param msg
+	 */
 	private void apiMessagesAdd(Message<JsonObject> msg) {
 		JsonObject inputObject = msg.body();
 		System.err.println("apiMessagesAdd called : "+inputObject.encode());
 		messages.add(inputObject);
 
+		// publish all known messages to any subscriber
 		this.vertx.eventBus().publish(":pubsub/messages", messages);
 		msg.reply(new JsonObject());
 	}

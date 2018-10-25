@@ -43,18 +43,20 @@ export default {
   },
   methods: {
     getAll () {
+      // call an API on the eventbus to receive all known messages from the backend
       eventbus.callApi('/api/messages', {}).then((response) => {
         this.messages = response
       })
     },
     post () {
+      // call an API on the eventbus to post a new message to the backend
       if (self.content !== '') {
-        let id = Math.floor(Math.random() * 1000) + 1
-        eventbus.callApi('/api/messages/add', {id: id, content: self.content})
+        eventbus.callApi('/api/messages/add', {content: self.content})
         self.content = ''
       }
     },
     remove (message) {
+      // call an API on the eventbus to delete a message
       eventbus.callApi('/api/messages/delete', message)
     }
   },
@@ -71,6 +73,8 @@ export default {
       eventbus.subscribe(':pubsub/messages', function (message) {
         self.messages = message
       })
+      
+      // finally get all messages from the backend
       self.getAll()
     }, 500);
   }

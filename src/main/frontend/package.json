@@ -1,8 +1,6 @@
 {
-  "name": "bookstore-frontend",
+  "name": "frontend",
   "version": "1.0.0",
-  "description": "Frontend for Bookstore app",
-  "author": "Paweł J. Wal <p@steamshard.net>",
   "private": true,
   "scripts": {
     "dev": "node build/dev-server.js",
@@ -11,7 +9,6 @@
     "unit": "cross-env BABEL_ENV=test karma start test/unit/karma.conf.js --single-run",
     "test": "npm run unit",
     "lint": "eslint --ext .js,.vue src test/unit/specs",
-    "deploy": "node node_modules/s3-deploy/.bin/s3-deploy './dist/**' --cwd './dist/' --region eu-west-1 --bucket bookstore-frontend-paweljw --profile bookstore-frontend",
     "release": "npm run build && npm run deploy"
   },
   "dependencies": {
