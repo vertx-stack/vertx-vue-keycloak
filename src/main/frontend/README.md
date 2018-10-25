@@ -1,6 +1,6 @@
 # vertx-vue-keycloak frontend
 
-> Frontend for https://github.com/vertx-stack/vertx-vue-keycloak app, built for the medium article ...
+> Frontend for https://github.com/vertx-stack/vertx-vue-keycloak app, built for the medium article https://medium.com/@thomas.reinecke/vert-x-vuejs-oauth2-in-5-steps-c04ee78475b7
 
 ## Build Setup
 
