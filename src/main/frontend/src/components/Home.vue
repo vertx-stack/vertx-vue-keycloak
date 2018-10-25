@@ -45,30 +45,43 @@ export default {
     // getAll: () => axios.get('api/messages').then(res => self.messages = res.data),
     getAll () {
       console.log('getAll called')
+
+      eventbus.callApi('/api/messages', {}).then((response) => {
+        console.log('::: received response from vertx: ', response)
+        this.messages = response
+      })
+
       // send a message
       // eventbus.send('/api/messages', {name: 'tim', age: 587})
     },
-    post: () => {
+    post () {
       if (self.content !== '') {
-        axios.post('api/messages', self.content)
+        let id = Math.floor(Math.random() * 1000) + 1
+        eventbus.callApi('/api/messages/add', {id: id, content: self.content}).then((response) => {
+          this.messages = response
+        })   
         self.content = ''
       }
     },
-    remove: id => axios.delete('api/messages/' + id),
-    created () {
-      this.getAll()
+    remove (messageId) {
+      eventbus.callApi('/api/messages/delete', {id: messageId}).then((response) => {
+        this.messages = response
+      })      
     }
   },
   created() {
-    self.getAll()
+    eventbus.initialize()
+    setTimeout(function () {
+      self.getAll()
+    }, 1000);
   },
   ready () {
     console.log('::: Home vue ready')
     // when the component is loaded 1. the current state is fetched from the server
     // 2. push create and delete handlers are registered
-    self.getAll()
-    eventbus.handle('messages/created', message => self.messages.push(message))
-    eventbus.handle('messages/deleted', message => remove(self.messages, storedMessage => message.id === storedMessage.id))
+    // self.getAll()
+    // eventbus.handle('messages/created', message => self.messages.push(message))
+    // eventbus.handle('messages/deleted', message => remove(self.messages, storedMessage => message.id === storedMessage.id))
     // eventbus.handle('connections', connections => self.connectionCount = connections.count)
   }
 }

@@ -25,7 +25,7 @@ export default {
 }
 
 .btn-logout {
-  background-color: rgb(44, 76, 255);
+  background-color: #007bff;
   color: #fff;
 }
 

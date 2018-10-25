@@ -16,7 +16,10 @@
   },
   "dependencies": {
     "axios": "^0.16.2",
+    "font-awesome": "^4.7.0",
+    "font-awesome-webpack": "^0.0.5-beta.2",
     "jwt-decode": "^2.2.0",
+    "less": "^3.8.1",
     "vertx3-eventbus-client": "^3.5.4",
     "vue": "^2.4.2",
     "vue-axios": "^2.0.2",

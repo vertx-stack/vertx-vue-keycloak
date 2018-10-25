@@ -38,7 +38,10 @@ public class MainVerticle extends AbstractVerticle {
 			.put("keyStore", "test.jks")
 			.put("enforceRedirect", false);
 
-	private JsonArray messages = new JsonArray().add("message1").add("message2");
+	private JsonArray messages = new JsonArray()
+			.add(new JsonObject().put("id", 1).put("content", "blabla"))
+			.add(new JsonObject().put("id", 2).put("content", "here's a second message"))
+			.add(new JsonObject().put("id", 3).put("content", "one more"));
 	
 	@Override
 	public void start(Future<Void> startFuture) {
@@ -233,6 +236,8 @@ public class MainVerticle extends AbstractVerticle {
 	private void createApiEndpoints() {
 
 		vertx.eventBus().consumer("/api/messages", this::apiMessages);
+		vertx.eventBus().consumer("/api/messages/delete", this::apiMessagesDelete);
+		vertx.eventBus().consumer("/api/messages/add", this::apiMessagesAdd);
 	}
 
 
@@ -240,6 +245,25 @@ public class MainVerticle extends AbstractVerticle {
 		System.err.println("apiMessages called");
 		JsonObject inputObject = msg.body();
 		System.out.println(inputObject.encode());
+		msg.reply(messages);
+	}
+	
+	private void apiMessagesDelete(Message<JsonObject> msg) {
+		System.err.println("apiMessagesDelete called");
+		JsonObject inputObject = msg.body();
+		for(int a=0; a < messages.size(); a++) {
+			if(messages.getJsonObject(a).getInteger("id") == inputObject.getInteger("id"))	{
+				messages.remove(a);
+				break;
+			}
+		}
+		msg.reply(messages);
+	}
+	
+	private void apiMessagesAdd(Message<JsonObject> msg) {
+		System.err.println("apiMessagesAdd called");
+		JsonObject inputObject = msg.body();
+		messages.add(inputObject);
 		msg.reply(messages);
 	}
 }

@@ -5,6 +5,7 @@ import App from './App'
 import router from './router'
 import axios from './backend/vue-axios'
 import store from './store'
+import 'font-awesome-webpack'
 
 Vue.config.productionTip = false
 
