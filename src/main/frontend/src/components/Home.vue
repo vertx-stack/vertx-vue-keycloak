@@ -14,8 +14,8 @@
       <div class="row">
         <div class="col-sm-12">
           <ul class="list-group">
-            <li v-for="message in messages" track-by="id" class="list-group-item">
-             <span class="btn btn-sm label label-pill label-default pull-right" @click="remove(message.id)">
+            <li v-for="message in messages" track-by="content" class="list-group-item">
+             <span class="btn btn-sm label label-pill label-default pull-right" @click="remove(message)">
                 <i class="fa fa-remove remove-cross"></i>
               </span>
               {{message.content}}
@@ -42,47 +42,37 @@ export default {
     }
   },
   methods: {
-    // getAll: () => axios.get('api/messages').then(res => self.messages = res.data),
     getAll () {
-      console.log('getAll called')
-
       eventbus.callApi('/api/messages', {}).then((response) => {
-        console.log('::: received response from vertx: ', response)
         this.messages = response
       })
-
-      // send a message
-      // eventbus.send('/api/messages', {name: 'tim', age: 587})
     },
     post () {
       if (self.content !== '') {
         let id = Math.floor(Math.random() * 1000) + 1
-        eventbus.callApi('/api/messages/add', {id: id, content: self.content}).then((response) => {
-          this.messages = response
-        })   
+        eventbus.callApi('/api/messages/add', {id: id, content: self.content})
         self.content = ''
       }
     },
-    remove (messageId) {
-      eventbus.callApi('/api/messages/delete', {id: messageId}).then((response) => {
-        this.messages = response
-      })      
+    remove (message) {
+      eventbus.callApi('/api/messages/delete', message)
     }
   },
   created() {
-    eventbus.initialize()
+    // we allow a little delay until the vertxbus connects
     setTimeout(function () {
+      // subscribe to client connection changes
+      eventbus.subscribe(':pubsub/connections', function (message) {
+        // console.log("count: ", message)
+        if(message !== null) self.connectionCount = JSON.parse(message).count
+      })
+
+      // subscribe to message changes
+      eventbus.subscribe(':pubsub/messages', function (message) {
+        self.messages = message
+      })
       self.getAll()
-    }, 1000);
-  },
-  ready () {
-    console.log('::: Home vue ready')
-    // when the component is loaded 1. the current state is fetched from the server
-    // 2. push create and delete handlers are registered
-    // self.getAll()
-    // eventbus.handle('messages/created', message => self.messages.push(message))
-    // eventbus.handle('messages/deleted', message => remove(self.messages, storedMessage => message.id === storedMessage.id))
-    // eventbus.handle('connections', connections => self.connectionCount = connections.count)
+    }, 500);
   }
 }
 </script>
