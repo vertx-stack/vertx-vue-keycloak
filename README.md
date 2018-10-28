@@ -1,6 +1,6 @@
 
 # Vert.x + VueJS + OAuth2 in 5 steps
-This repo holds the source codes for the Medium Article Vert.x + VueJS + OAuth2 in 5 steps:
+This repo holds the source codes for the Medium Article **Vert.x + VueJS + OAuth2 in 5 steps**:
 https://medium.com/@thomas.reinecke/vert-x-vuejs-oauth2-in-5-steps-c04ee78475b7
 
 # Dev env setup
