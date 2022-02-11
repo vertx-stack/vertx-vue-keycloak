@@ -13,7 +13,7 @@
 		<!-- dependencies -->
 		<junit.version>4.13.1</junit.version>
 		<projectlombok.version>1.16.10</projectlombok.version>
-		<vertx.version>3.5.4</vertx.version>
+		<vertx.version>3.9.4</vertx.version>
 	</properties>
 	<dependencies>
 		<dependency>
